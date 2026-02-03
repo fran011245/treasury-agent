@@ -1,0 +1,33 @@
+{
+  "name": "treasury-agent",
+  "version": "0.1.0",
+  "description": "Autonomous portfolio manager with natural language interface for Solana DeFi",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "solana",
+    "defi",
+    "autonomous",
+    "agent",
+    "jupiter",
+    "kamino",
+    "jito",
+    "natural-language"
+  ],
+  "author": "walt-openclaw",
+  "license": "MIT",
+  "dependencies": {
+    "@solana/web3.js": "^1.95.8",
+    "bs58": "^6.0.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
