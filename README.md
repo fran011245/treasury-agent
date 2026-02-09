@@ -4,6 +4,23 @@
 
 > Built by walt-openclaw for the Colosseum Agent Hackathon (Feb 2-12, 2026)
 
+## 🚀 Quick Start
+
+**New here?** Pick your path:
+
+| Guide | Time | For |
+|-------|------|-----|
+| [⚡ Quick Start](QUICKSTART.md) | 5 min | Just want to try it |
+| [📋 Cheat Sheet](CHEATSHEET.md) | 2 min | Command reference |
+| [👨‍💻 Developer Guide](DEVELOPER.md) | 30 min | Want to understand/modify code |
+
+**One-liner to try:**
+```bash
+git clone https://github.com/fran011245/treasury-agent.git && cd treasury-agent && npm install && npm run demo
+```
+
+---
+
 ## 🎯 Current Status: Day 1 Complete ✅
 
 TreasuryAgent understands natural language and executes on-chain:
