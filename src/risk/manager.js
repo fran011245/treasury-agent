@@ -100,26 +100,39 @@ export function checkRisk(intent, balance) {
   const maxTransactionSOL = 10;
   const minBalanceSOL = 0.05; // Keep some for fees
   
+  const unit = (intent.unit || 'SOL').toUpperCase();
+  
   // Check circuit breaker
   // (would need to import instance from main, simplified here)
   
-  // Check amount
-  if (intent.amount && intent.amount > maxTransactionSOL) {
-    return {
-      approved: false,
-      reason: `Amount ${intent.amount} SOL exceeds limit of ${maxTransactionSOL} SOL`
-    };
-  }
-  
-  // Check balance for transactions
-  if (intent.type !== 'balance' && intent.amount) {
-    const balanceSOL = balance / 1000000000; // LAMPORTS_PER_SOL
-    if (intent.amount > balanceSOL - minBalanceSOL) {
+  // Only check SOL limits for SOL transactions
+  if (unit === 'SOL' && intent.amount) {
+    // Check amount limit
+    if (intent.amount > maxTransactionSOL) {
       return {
         approved: false,
-        reason: `Insufficient balance. Have: ${balanceSOL.toFixed(4)} SOL, Need: ${intent.amount} SOL + fees`
+        reason: `Amount ${intent.amount} SOL exceeds limit of ${maxTransactionSOL} SOL`
       };
     }
+    
+    // Check balance
+    if (intent.type !== 'balance' && intent.type !== 'position') {
+      const balanceSOL = balance / 1000000000; // LAMPORTS_PER_SOL
+      if (intent.amount > balanceSOL - minBalanceSOL) {
+        return {
+          approved: false,
+          reason: `Insufficient balance. Have: ${balanceSOL.toFixed(4)} SOL, Need: ${intent.amount} SOL + fees`
+        };
+      }
+    }
+  }
+  
+  // For USDC/USDT, we assume the user has the tokens (would need token balance check in real implementation)
+  if (unit !== 'SOL' && intent.amount && intent.amount > 10000) {
+    return {
+      approved: false,
+      reason: `Amount ${intent.amount} ${unit} exceeds safe limit of 10000 ${unit}`
+    };
   }
   
   return { approved: true };

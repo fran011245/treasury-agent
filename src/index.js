@@ -81,7 +81,7 @@ async function processCommand(command) {
     raw: parsed.raw
   };
   
-  console.log(`🧠 Intent: ${intent.type} (${intent.amount || 'no amount'} ${intent.unit || ''})`);
+  console.log(`🧠 Intent: ${intent.type} (${intent.amount || 'no amount'} ${intent.unit || 'SOL'})`);
   
   if (intent.type === 'unknown') {
     console.log('❓ I don\'t understand that command. Try:');
