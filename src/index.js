@@ -5,9 +5,12 @@
  * Built by walt-openclaw for Colosseum Agent Hackathon
  */
 
-import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { readFileSync } from 'fs';
 import { config } from 'dotenv';
+import { parseCommand } from './parser/index.js';
+import { executeIntent } from './executor/index.js';
+import { checkRisk } from './risk/manager.js';
 
 config();
 
@@ -19,7 +22,8 @@ const connection = new Connection(RPC_URL, 'confirmed');
 const state = {
   wallet: null,
   balance: 0,
-  status: 'initializing'
+  status: 'initializing',
+  history: []
 };
 
 /**
@@ -61,20 +65,121 @@ async function initialize() {
 }
 
 /**
- * Main agent loop
+ * Process user command
+ */
+async function processCommand(command) {
+  console.log(`\n👤 User: "${command}"`);
+  
+  // Parse intent
+  const parsed = parseCommand(command);
+  const intent = {
+    type: parsed.intent,
+    amount: parsed.amount,
+    unit: parsed.unit,
+    tokens: parsed.tokens,
+    protocol: parsed.protocol,
+    raw: parsed.raw
+  };
+  
+  console.log(`🧠 Intent: ${intent.type} (${intent.amount || 'no amount'} ${intent.unit || ''})`);
+  
+  if (intent.type === 'unknown') {
+    console.log('❓ I don\'t understand that command. Try:');
+    console.log('   - "check balance"');
+    console.log('   - "swap 0.1 SOL to USDC"');
+    return { status: 'unknown_command' };
+  }
+  
+  // Risk check
+  const riskCheck = checkRisk(intent, state.balance);
+  if (!riskCheck.approved) {
+    console.log(`⚠️  Risk check failed: ${riskCheck.reason}`);
+    return { status: 'rejected', reason: riskCheck.reason };
+  }
+  
+  console.log('✅ Risk check passed');
+  
+  // Execute
+  try {
+    const result = await executeIntent(connection, state.wallet, intent);
+    state.history.push({
+      timestamp: new Date().toISOString(),
+      command,
+      intent,
+      result
+    });
+    return result;
+  } catch (error) {
+    console.error(`❌ Execution error: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Interactive mode
+ */
+async function interactiveMode() {
+  console.log('\n🎮 Interactive Mode');
+  console.log('Commands: "swap 0.1 SOL to USDC", "check balance", "exit"\n');
+  
+  const stdin = process.stdin;
+  stdin.setEncoding('utf8');
+  
+  stdin.on('data', async (data) => {
+    const command = data.trim();
+    
+    if (command === 'exit' || command === 'quit') {
+      console.log('\n👋 Goodbye!');
+      process.exit(0);
+    }
+    
+    if (command) {
+      try {
+        await processCommand(command);
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+      console.log('\n> ');
+    }
+  });
+  
+  console.log('> ');
+}
+
+/**
+ * Demo mode - run example commands
+ */
+async function demoMode() {
+  console.log('\n🎬 Demo Mode\n');
+  
+  const commands = [
+    'check balance',
+    'swap 0.01 SOL to USDC',
+  ];
+  
+  for (const command of commands) {
+    await processCommand(command);
+    console.log('\n---\n');
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  
+  console.log('✅ Demo complete!');
+  process.exit(0);
+}
+
+/**
+ * Main
  */
 async function main() {
   await initialize();
   
-  console.log('Available commands:');
-  console.log('  - "Check balance"');
-  console.log('  - "Swap X SOL to USDC" (coming soon)');
-  console.log('  - "Stake X SOL with Jito" (coming soon)');
-  console.log('  - "Deposit X USDC to Kamino" (coming soon)');
-  console.log('\nPress Ctrl+C to exit');
+  const mode = process.argv[2] || 'interactive';
   
-  // Keep alive
-  process.stdin.resume();
+  if (mode === 'demo') {
+    await demoMode();
+  } else {
+    await interactiveMode();
+  }
 }
 
 // Handle graceful shutdown

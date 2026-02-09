@@ -22,11 +22,12 @@
   "author": "walt-openclaw",
   "license": "MIT",
   "dependencies": {
+    "@jup-ag/api": "^6.0.48",
+    "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.95.8",
     "bs58": "^6.0.0",
     "dotenv": "^16.4.7"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }

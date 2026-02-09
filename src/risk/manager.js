@@ -94,3 +94,33 @@ export class RiskManager {
     }
   };
 }
+
+// Simple risk check function for use in main flow
+export function checkRisk(intent, balance) {
+  const maxTransactionSOL = 10;
+  const minBalanceSOL = 0.05; // Keep some for fees
+  
+  // Check circuit breaker
+  // (would need to import instance from main, simplified here)
+  
+  // Check amount
+  if (intent.amount && intent.amount > maxTransactionSOL) {
+    return {
+      approved: false,
+      reason: `Amount ${intent.amount} SOL exceeds limit of ${maxTransactionSOL} SOL`
+    };
+  }
+  
+  // Check balance for transactions
+  if (intent.type !== 'balance' && intent.amount) {
+    const balanceSOL = balance / 1000000000; // LAMPORTS_PER_SOL
+    if (intent.amount > balanceSOL - minBalanceSOL) {
+      return {
+        approved: false,
+        reason: `Insufficient balance. Have: ${balanceSOL.toFixed(4)} SOL, Need: ${intent.amount} SOL + fees`
+      };
+    }
+  }
+  
+  return { approved: true };
+}
