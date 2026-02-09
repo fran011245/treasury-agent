@@ -16,8 +16,9 @@ export function parseCommand(command) {
     swap: /swap|exchange|convert|trade/,
     stake: /stake|staking/,
     lend: /lend|deposit|supply/,
-    withdraw: /withdraw|unstake|remove/,
+    withdraw: /withdraw|unstake|remove|pull\s+out|take\s+out/,
     balance: /balance|portfolio|holdings/,
+    position: /position|status|check\s+deposit|how\s+much/,
   };
   
   // Detect intent

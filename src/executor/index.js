@@ -4,6 +4,7 @@
  */
 
 import { executeSwap, TOKENS } from './jupiter.js';
+import { depositToKamino, withdrawFromKamino, getKaminoPosition, getKaminoAPY } from './kamino.js';
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 /**
@@ -26,8 +27,13 @@ export async function executeIntent(connection, wallet, intent) {
         return { status: 'pending', type: 'stake' };
       
       case 'lend':
-        console.log('⚠️  Lending not yet implemented');
-        return { status: 'pending', type: 'lend' };
+        return await executeLendIntent(connection, wallet, intent);
+      
+      case 'withdraw':
+        return await executeWithdrawIntent(connection, wallet, intent);
+      
+      case 'position':
+        return await executePositionIntent(connection, wallet, intent);
       
       default:
         throw new Error(`Unknown intent type: ${intent.type}`);
@@ -80,5 +86,65 @@ async function checkBalance(connection, wallet) {
     type: 'balance',
     balance: solBalance,
     address: wallet.publicKey.toString(),
+  };
+}
+
+/**
+ * Execute lend/deposit intent
+ */
+async function executeLendIntent(connection, wallet, intent) {
+  const token = intent.unit?.toUpperCase() || 'USDC';
+  const amount = intent.amount;
+  
+  if (!amount || amount <= 0) {
+    throw new Error('Invalid amount for lending');
+  }
+  
+  // Check current position first
+  const position = await getKaminoPosition(connection, wallet, token);
+  
+  // Show APY
+  console.log(`📈 Current ${token} APY on Kamino: ${position.apy}%`);
+  
+  // Execute deposit
+  return await depositToKamino(connection, wallet, token, amount);
+}
+
+/**
+ * Execute withdraw intent
+ */
+export async function executeWithdrawIntent(connection, wallet, intent) {
+  const token = intent.unit?.toUpperCase() || 'USDC';
+  const amount = intent.amount;
+  
+  if (!amount || amount <= 0) {
+    throw new Error('Invalid amount for withdrawal');
+  }
+  
+  return await withdrawFromKamino(connection, wallet, token, amount);
+}
+
+/**
+ * Execute position check intent
+ */
+async function executePositionIntent(connection, wallet, intent) {
+  const token = intent.unit?.toUpperCase() || 'USDC';
+  
+  console.log(`📊 Checking ${token} position on Kamino...`);
+  
+  const position = await getKaminoPosition(connection, wallet, token);
+  const apy = await getKaminoAPY(token);
+  
+  console.log(`\n📈 ${token} Position:`);
+  console.log(`   Deposited: ${position.deposited} ${token}`);
+  console.log(`   Earned: ${position.earned} ${token}`);
+  console.log(`   APY: ${apy}%`);
+  
+  return {
+    status: 'success',
+    type: 'position',
+    token,
+    position,
+    apy
   };
 }

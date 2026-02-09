@@ -120,7 +120,13 @@ async function processCommand(command) {
  */
 async function interactiveMode() {
   console.log('\n🎮 Interactive Mode');
-  console.log('Commands: "swap 0.1 SOL to USDC", "check balance", "exit"\n');
+  console.log('Commands:');
+  console.log('  "check balance"');
+  console.log('  "swap 0.1 SOL to USDC"');
+  console.log('  "deposit 100 USDC"');
+  console.log('  "withdraw 50 USDC"');
+  console.log('  "check my USDC position"');
+  console.log('  "exit"\n');
   
   const stdin = process.stdin;
   stdin.setEncoding('utf8');
@@ -154,7 +160,8 @@ async function demoMode() {
   
   const commands = [
     'check balance',
-    'swap 0.01 SOL to USDC',
+    'deposit 100 USDC to Kamino',
+    'check my USDC position',
   ];
   
   for (const command of commands) {
